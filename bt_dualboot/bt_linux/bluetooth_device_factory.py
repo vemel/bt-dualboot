@@ -1,6 +1,7 @@
-from bt_dualboot.bluetooth_device import BluetoothDevice
 import re
 from configparser import ConfigParser
+
+from bt_dualboot.bluetooth_device import BluetoothDevice
 
 
 def extract_macs(device_info_path):
@@ -21,7 +22,7 @@ def extract_macs(device_info_path):
     return {"device_mac": device_mac, "adapter_mac": adapter_mac}
 
 
-def extract_info(device_info_path):
+def extract_info(device_info_path: str):
     """Extracts adapter info from Linux /path/to/info
 
     Args:
@@ -36,6 +37,13 @@ def extract_info(device_info_path):
     long_term_key = config.get("LongTermKey", "Key", fallback=None)
     ediv = config.get("LongTermKey", "EDiv", fallback=None)
     rand = config.get("LongTermKey", "Rand", fallback=None)
+    peripheral_long_term_key = config.get(
+        "PeripheralLongTermKey",
+        "Key",
+        fallback=None,
+    )
+    if peripheral_long_term_key:
+        link_key = peripheral_long_term_key
 
     if not link_key and not long_term_key:
         raise KeyError("Neither LinkKey->Key nor LongTermKey->Key exist")
@@ -73,5 +81,5 @@ def bluetooth_device_factory(device_info_path):
         adapter_mac=macs["adapter_mac"],
         ltk=info["long_term_key"],
         ediv=int(info["ediv"]) if info["ediv"] else None,
-        rand=int(info["rand"]) if info["rand"] else None
+        rand=int(info["rand"]) if info["rand"] else None,
     )
