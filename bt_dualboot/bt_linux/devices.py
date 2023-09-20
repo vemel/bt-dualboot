@@ -1,8 +1,14 @@
-import os
 import glob
+import os
+from pathlib import Path
+
 from .bluetooth_device_factory import bluetooth_device_factory
 
-LINUX_BT_DIR = "/var/lib/bluetooth"
+LINUX_BT_DIR = Path("/var/lib/bluetooth")
+
+
+def set_bluetooth_path(path: Path) -> None:
+    globals()["LINUX_BT_DIR"] = path.resolve()
 
 
 def get_adapters_macs():
@@ -20,7 +26,9 @@ def get_adapters_paths():
     Returns:
         list<str>: kind of ['/var/lib/bluetooths/A4:6B:6C:9D:E2:FB', ...]
     """
-    return [os.path.join(LINUX_BT_DIR, dir_name) for dir_name in os.listdir(LINUX_BT_DIR)]
+    return [
+        os.path.join(LINUX_BT_DIR, dir_name) for dir_name in os.listdir(LINUX_BT_DIR)
+    ]
 
 
 def get_devices_paths():
@@ -37,4 +45,6 @@ def get_devices():
     Returns:
         list<BluetoothDevice>: linux registred bluetooths devices
     """
-    return [bluetooth_device_factory(device_path) for device_path in get_devices_paths()]
+    return [
+        bluetooth_device_factory(device_path) for device_path in get_devices_paths()
+    ]

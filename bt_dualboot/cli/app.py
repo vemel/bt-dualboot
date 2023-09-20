@@ -1,22 +1,24 @@
-import sys
 import os
+import re
+import sys
 from argparse import ArgumentParser, ArgumentTypeError
 from contextlib import contextmanager
-import re
+from pathlib import Path
 
 from bt_dualboot.__meta__ import APP_NAME, __version__
+from bt_dualboot.bt_linux.devices import set_bluetooth_path
 from bt_dualboot.bt_sync_manager import BtSyncManager, DeviceNotFoundError
 from bt_dualboot.win_mount import locate_windows_mount_points
 from bt_dualboot.windows_registry import WindowsRegistry
 
 from .tools import (
     is_debug,
-    require_linux,
-    require_chntpw_package,
-    require_univocal_windows_location,
-    require_bt_dir_access,
-    print_header,
     print_devices_list,
+    print_header,
+    require_bt_dir_access,
+    require_chntpw_package,
+    require_linux,
+    require_univocal_windows_location,
 )
 
 DEFAULT_BACKUP_PATH = os.path.join(os.sep, "var", "backup", "bt-dualboot")
@@ -37,27 +39,62 @@ def _argv_parser():
         description=f"Sync bluetooth keys from Linux to Windows (v{__version__})",
     )
 
-    # fmt: off
-    args_list    = arg_parser.add_argument_group("List resources")
-    args_sync    = arg_parser.add_argument_group("Sync keys")
-    args_backup  = arg_parser.add_argument_group("Backup Windows Registry")
+    args_list = arg_parser.add_argument_group("List resources")
+    args_sync = arg_parser.add_argument_group("Sync keys")
+    args_backup = arg_parser.add_argument_group("Backup Windows Registry")
 
-    arg_parser   .add_argument("--version",             help=f"print version",                                action="store_true")
-    args_list    .add_argument("-l", "--list",          help="[root required] list bluetooth devices",        action="store_true")
-    args_list    .add_argument("--list-win-mounts",     help="list mounted Windows locations",                action="store_true")
-    args_list    .add_argument("--bot",                 help="parsable output for robots (supported: -l)",    action="store_true")
-    args_sync    .add_argument("--dry-run",             help="print actions to do without invocation",        action="store_true")
-    args_sync    .add_argument("--win",                 help="Windows mount point (advanced usage)",          nargs=1,   metavar="MOUNT")
-    args_sync    .add_argument("--sync",                help="[root required] sync specified device",         nargs="+", metavar="MAC", type=mac_str)
-    args_sync    .add_argument("--sync-all",            help="[root required] sync all paired devices",       action="store_true")
-    args_backup  .add_argument("-n", "--no-backup",     help="process without backup",                        action="store_true")
+    arg_parser.add_argument("--version", help=f"print version", action="store_true")
+    args_list.add_argument(
+        "-l",
+        "--list",
+        help="[root required] list bluetooth devices",
+        action="store_true",
+    )
+    args_list.add_argument(
+        "--list-win-mounts", help="list mounted Windows locations", action="store_true"
+    )
+    args_list.add_argument(
+        "--bot", help="parsable output for robots (supported: -l)", action="store_true"
+    )
+    args_sync.add_argument(
+        "--dry-run", help="print actions to do without invocation", action="store_true"
+    )
+    args_sync.add_argument(
+        "--win", help="Windows mount point (advanced usage)", nargs=1, metavar="MOUNT"
+    )
+    args_sync.add_argument(
+        "--sync",
+        help="[root required] sync specified device",
+        nargs="+",
+        metavar="MAC",
+        type=mac_str,
+    )
+    args_sync.add_argument(
+        "--sync-all",
+        help="[root required] sync all paired devices",
+        action="store_true",
+    )
+    args_backup.add_argument(
+        "-n", "--no-backup", help="process without backup", action="store_true"
+    )
+    args_backup.add_argument(
+        "--bluetooth-path",
+        help="Path to bluetooth directory",
+        default=Path("/var/lib/bluetooth"),
+    )
 
     # NOTE:
     #   default=False sets opts.backup=False when option doesn't set by user
     #   when user set `--backup` without path opts.backup would be None
     #   when user set `--backup /path` opts.backup would be a /path
-    args_backup  .add_argument("-b", "--backup",        help=f"path to backup directory, default: {DEFAULT_BACKUP_PATH}",
-                                                                                                              nargs="?", metavar="path", default=False)     # noqa: E127
+    args_backup.add_argument(
+        "-b",
+        "--backup",
+        help=f"path to backup directory, default: {DEFAULT_BACKUP_PATH}",
+        nargs="?",
+        metavar="path",
+        default=False,
+    )  # noqa: E127
     # fmt: on
     return arg_parser
 
@@ -243,7 +280,9 @@ class Application:
                 print("...done")
 
     def run(self):
-        require_univocal_windows_location(user_selected_location=self._opts_win_mount_point())
+        require_univocal_windows_location(
+            user_selected_location=self._opts_win_mount_point()
+        )
 
         if self.opts.list_win_mounts:
             self.list_win_mounts()
@@ -290,7 +329,9 @@ def parse_argv():
 
     opts_dict = vars(opts)
 
-    required_specified = [name for name in blank_states.keys() if opts_dict[name] != blank_states[name]]
+    required_specified = [
+        name for name in blank_states.keys() if opts_dict[name] != blank_states[name]
+    ]
 
     if len(required_specified) == 0:
         parser.error("missing required argument")
@@ -307,7 +348,9 @@ def parse_argv():
     is_backup_concern = opts.no_backup is True or opt_backup is not None
 
     if is_backup_concern and not is_sync:
-        parser.error("--backup/--no-backup options makes sense only with --sync/--sync-all options")
+        parser.error(
+            "--backup/--no-backup options makes sense only with --sync/--sync-all options"
+        )
 
     if is_sync and not is_backup_concern:
         msg = f"""Neither backup option given!\n
@@ -337,6 +380,7 @@ def main():
         return
 
     require_chntpw_package()
+    set_bluetooth_path(Path(opts.bluetooth_path))
 
     app = Application(opts)
     app.run()
