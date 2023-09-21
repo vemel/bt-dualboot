@@ -1,6 +1,7 @@
-from bt_dualboot import APP_NAME, __version__
-from tests_integration.helpers import snapshot_cli_result, debug_shell
 from operator import itemgetter
+
+from bt_dualboot import APP_NAME, __version__
+from tests_integration.helpers import debug_shell, snapshot_cli_result
 
 
 def snapshot_cli(*args, **kwrd):
@@ -23,7 +24,7 @@ def test_no_args(snapshot):
     """should be identical to -h"""
     for res in snapshot_cli(snapshot, []):
         retcode, stdout = itemgetter("retcode", "stdout")(res)
-        assert retcode == 1
+        assert retcode == 0
         assert stdout.find("-h, --help") > 0
 
 

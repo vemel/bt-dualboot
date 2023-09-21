@@ -1,5 +1,6 @@
-from bt_dualboot.bt_linux.bluetooth_device_factory import *
 import os
+
+from bt_dualboot.bt_linux.bluetooth_device_factory import *
 
 SAMPLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data_samples")
 SMPL_BT_SAMPLE_01 = os.path.join(SAMPLES_DIR, "bt_sample_01")
@@ -17,6 +18,9 @@ def test_extract_info():
     expected = {
         "name": "DEV-1-02-Name",
         "class": "0x000540",
+        "ediv": None,
+        "long_term_key": None,
+        "rand": None,
         "pairing_key": "A515CBE4E8F2E236FF999C0A53369EF6",
     }
     assert extract_info(SAMPLE_DEVICE_INFO_PATH) == expected

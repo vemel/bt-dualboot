@@ -26,7 +26,12 @@ poetry install
 
 # mount Windows partition with write access
 
-bash ./run.sh
+# list devices to sync
+bash ./run.sh -l
+
+
+# sync all devices
+bash ./run.sh --sync-all
 ```
 
 ### Usage: longer way

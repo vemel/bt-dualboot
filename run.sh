@@ -6,6 +6,7 @@ SYS_BLUETOOTH_PATH="/var/lib/bluetooth"
 TEMP_BLUETOOTH_PATH="./tmp/bluetooth"
 BACKUP_PATH="./tmp/backup"
 WIN_MNT=""
+ARGS="-l"
 
 has_param() {
     local term="$1"
@@ -36,19 +37,18 @@ find_win_mnt() {
     echo "Windows mounted to" $WIN_MNT
 }
 
-list_devices() {
-    poetry run bt-dualboot -l --bluetooth-path $TEMP_BLUETOOTH_PATH --win "$WIN_MNT"
+run_bt_dualboot() {
+    echo "Running bt-dualboot --win "$WIN_MNT" --bluetooth-path $TEMP_BLUETOOTH_PATH -b $BACKUP_PATH $ARGS"
+    poetry run bt-dualboot --win "$WIN_MNT" --bluetooth-path $TEMP_BLUETOOTH_PATH -b $BACKUP_PATH $ARGS
 }
 
-sync_all() {
-    echo "Syncing..."
-    poetry run bt-dualboot --sync-all --win "$WIN_MNT" --bluetooth-path $TEMP_BLUETOOTH_PATH -b $BACKUP_PATH
-}
 
 copy_bluetooth_dir
 find_win_mnt
-list_devices
 
-if has_param '--sync' "$@"; then
-    sync_all
+ARGS="-l"
+if ! test -z "$@"; then
+    ARGS="$@"
 fi
+
+run_bt_dualboot

@@ -348,9 +348,9 @@ def parse_argv():
     is_backup_concern = opts.no_backup is True or opt_backup is not None
 
     if is_backup_concern and not is_sync:
-        parser.error(
-            "--backup/--no-backup options makes sense only with --sync/--sync-all options"
-        )
+        opts.backup = False
+        opts.no_backup = False
+        is_backup_concern = False
 
     if is_sync and not is_backup_concern:
         msg = f"""Neither backup option given!\n
