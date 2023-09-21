@@ -16,6 +16,21 @@ User-friendly tool making your bluetooth devices working both in Windows and Lin
 
 ### Usage: shortest way
 
+```bash
+# install prerequisites
+sudo apt install chntpw jq
+
+# install poetry and project dependencies
+pip install poetry
+poetry install
+
+# mount Windows partition with write access
+
+bash ./run.sh
+```
+
+### Usage: longer way
+
 Assuming you have paired devices in Windows already, boot to Linux and paired them too.
 Syncing would be simple as following 2 steps:
 
